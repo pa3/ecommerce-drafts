@@ -8,7 +8,6 @@ let prevState: RootState;
 const getCurrentUrl = () => window.location.pathname + window.location.search;
 
 const goToUrl = (url: string) => {
-  console.log("Changing window history to: " + url);
   window.history.pushState({ routeIndex: ++currentRouteIndex }, "", url);
 };
 

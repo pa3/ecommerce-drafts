@@ -80,6 +80,7 @@ export const makeRoute = <Params extends Record<string, string> | void, ViewID>(
 };
 
 export const routes = {
+  root: makeRoute<{}, "root">("root", "/"),
   product: makeRoute<{ productId: string }, "product">(
     "product",
     "/product/:productId"

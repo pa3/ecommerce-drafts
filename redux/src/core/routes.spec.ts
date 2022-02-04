@@ -6,7 +6,7 @@ describe("makeRoute", () => {
     "/foo/:bar?"
   );
 
-  describe.only("provides isMatching, which", () => {
+  describe("provides isMatching, which", () => {
     const isMatching = route.isMatching;
 
     it("checks if url matches the route", () => {
@@ -17,7 +17,7 @@ describe("makeRoute", () => {
     });
   });
 
-  describe.only("provides getUrl, which", () => {
+  describe("provides getUrl, which", () => {
     const getUrl = route.getUrl;
 
     it("builds an url for given params", () => {
@@ -35,7 +35,7 @@ describe("makeRoute", () => {
     });
   });
 
-  describe.only("provides getParams, which", () => {
+  describe("provides getParams, which", () => {
     const getParams = route.getParams;
 
     it("extracts path params", () => {
