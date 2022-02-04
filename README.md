@@ -8,7 +8,17 @@ After spending around five years building e-commerce application web frontends I
 
 I plan to build half a dozen drafts using different frameworks both to demonstrate that essential architectural parts are framework agnostic and to ease proposed solution discussions (if I will ever have any) with people comfortable with different stacks.
 
-## Key drafts properties
+## Scope
+
+Each draft is a front-end part of a simplistic product catalog management application (i.e. section of an online shop admin panel, which lets shop owners/admins edit products and organize them into categories).
+
+The backend part is out of the scope of these drafts and will be mocked.
+
+## Key architectural properties
+
+The properties I want to achieve in these draft using the architecture I plan to use:
+ - ease of replacing view/networking/routing/etc. third-party libs/frameworks
+ - uncomplicated testability
 
 ## List of drafts
 
