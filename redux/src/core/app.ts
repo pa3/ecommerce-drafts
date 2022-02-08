@@ -1,22 +1,29 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "@/core/store";
 import { createView } from "@/core/routes";
 
 interface App {
-  url: string;
-  view: ReturnType<typeof createView> | { id: "initial" };
+  nextView?: ReturnType<typeof createView>;
+  view: ReturnType<typeof createView>;
 }
 
-export const canLeave = (_: RootState) => false;
+export const canLeave = (app: App) => {
+  return app.view.id !== "product";
+};
 
 export const { reducer, actions } = createSlice({
   name: "app",
-  initialState: { url: "/", view: { id: "initial" } } as App,
+  initialState: {
+    view: { id: "root", params: undefined },
+  } as App,
   reducers: {
-    goToUrl(state, action: PayloadAction<string>) {
-      const url = action.payload;
-      state.url = url;
-      state.view = createView(url);
+    goTo(state, action: PayloadAction<{ view: App["view"]; force?: boolean }>) {
+      const { view, force } = action.payload;
+      if (!force && !canLeave(state)) {
+        state.nextView = view;
+      } else {
+        state.view = view;
+        state.nextView = undefined;
+      }
     },
   },
 });

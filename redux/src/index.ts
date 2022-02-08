@@ -4,8 +4,9 @@ import { startRouting } from "@/routing";
 import { startNetwork } from "@/network";
 import { startBackendMocks } from "@/backend-mocks";
 
+startBackendMocks();
+
 const store = createStore();
 startView(store);
 startRouting(store);
-startBackendMocks();
 startNetwork(store);

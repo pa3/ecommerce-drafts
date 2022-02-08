@@ -1,7 +1,8 @@
 import { match, compile, pathToRegexp, Key, Match } from "path-to-regexp";
 
 type Routes = typeof routes[keyof typeof routes];
-type ViewId = ReturnType<typeof createView>["id"];
+type View = ReturnType<typeof createView>;
+type ViewId = View["id"];
 
 export interface Route<Params> {
   viewId: ViewId;
@@ -72,6 +73,7 @@ export const makeRoute = <Params extends Record<string, string> | void, ViewID>(
   });
 
   return {
+    viewId,
     isMatching,
     getUrl,
     getParams,
@@ -80,7 +82,7 @@ export const makeRoute = <Params extends Record<string, string> | void, ViewID>(
 };
 
 export const routes = {
-  root: makeRoute<{}, "root">("root", "/"),
+  root: makeRoute<void, "root">("root", "/"),
   product: makeRoute<{ productId: string }, "product">(
     "product",
     "/product/:productId"
@@ -88,11 +90,20 @@ export const routes = {
   productList: makeRoute<void, "product-list">("product-list", "/products"),
 };
 
-export const getRoute = (url: string): Routes | undefined =>
+export const getRouteByUrl = (url: string): Routes | undefined =>
   Object.values(routes).find((route) => route.isMatching(url));
 
+export const getRouteByView = (view: View): Routes | undefined =>
+  Object.values(routes).find((route) => route.viewId === view.id);
+
 export const createView = (url: string) => {
-  const route = getRoute(url);
+  const route = getRouteByUrl(url);
   if (!route) throw new Error("oupsy!");
   return route.createView(url);
+};
+
+export const getUrl = (view: ReturnType<typeof createView>) => {
+  const route = getRouteByView(view);
+  if (!route) throw new Error("oupsy!");
+  return route.getUrl(view.params as any);
 };
