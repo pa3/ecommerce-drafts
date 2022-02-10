@@ -1,5 +1,5 @@
 import { Link } from "@/view/link";
-import { routes } from "@/core/routes";
+import { routes } from "@/core/app";
 
 export const Navbar = () => (
   <nav>

@@ -1,7 +1,6 @@
 import { ReactNode, MouseEvent, useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { actions } from "@/core/app";
-import { createView } from "@/core/routes";
+import { actions, createView } from "@/core/app";
 
 interface LinkProps {
   url: string;

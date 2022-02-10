@@ -1,21 +1,30 @@
-import { match, compile, pathToRegexp, Key, Match } from "path-to-regexp";
-
-type Routes = typeof routes[keyof typeof routes];
-type View = ReturnType<typeof createView>;
-type ViewId = View["id"];
+import { match, compile, pathToRegexp, Key } from "path-to-regexp";
 
 export interface Route<Params> {
-  viewId: ViewId;
-  path: string;
   getParams: (url: string) => Params;
-  getUrl: (params?: Record<string, string>) => string;
+  getUrl: (params: Params) => string;
   isMatching: (url: string) => boolean;
 }
 
-export const makeRoute = <Params extends Record<string, string> | void, ViewID>(
-  viewId: ViewID,
+type RawParams<Params> = Record<keyof Params, string>;
+
+export function makeRoute<Params extends Record<string, string>>(
   path: string
-) => {
+): Route<Params>;
+
+// An overload making sure that encode/decode functions are provided
+// if route parameter values are not all strings
+export function makeRoute<Params extends Record<string, unknown>>(
+  path: string,
+  encodeParams: (params: Params) => RawParams<Params>,
+  decodeParams: (rawParams: RawParams<Params>) => Params
+): Route<Params>;
+
+export function makeRoute<Params>(
+  path: string,
+  encodeParams?: (params: Params) => RawParams<Params>,
+  decodeParams?: (rawParams: RawParams<Params>) => Params
+): Route<Params> {
   const pathKeys: Key[] = [];
   pathToRegexp(path, pathKeys);
 
@@ -31,32 +40,36 @@ export const makeRoute = <Params extends Record<string, string> | void, ViewID>(
     return Boolean(matchPathname(pathPart));
   };
 
-  const getParams = (url: string): Params => {
+  function getParams(url: string): Params {
     const [pathPart, queryPart] = url.split("?");
-    const match: Match = matchPathname(pathPart);
+    const match = matchPathname(pathPart) as
+      | { params: Record<keyof Params, string> }
+      | undefined;
 
     if (!match) throw new Error(`URL '${url}' does not match path '${path}'`);
 
-    const pathParams = match.params;
+    const queryParams = queryPart
+      ? Object.fromEntries(
+          queryPart.split("&").map((queryEntry) => {
+            const [name, value] = queryEntry.split("=");
+            return [name, decodeURIComponent(value)];
+          })
+        )
+      : {};
 
-    if (!queryPart) return pathParams as unknown as Params;
-
-    const queryParams = Object.fromEntries(
-      queryPart.split("&").map((queryEntry) => {
-        const [name, value] = queryEntry.split("=");
-        return [name, decodeURIComponent(value)];
-      })
-    );
-
-    return {
-      ...pathParams,
+    const params = {
+      ...match.params,
       ...queryParams,
-    } as unknown as Params;
-  };
+    };
 
-  const getUrl = (params: Params) => {
-    const pathPart = toPathname(params as any);
-    const queryParams = Object.entries(params || {}).filter(
+    return decodeParams ? decodeParams(params) : (params as unknown as Params);
+  }
+
+  function getUrl(params: Params) {
+    const encoded = encodeParams ? encodeParams(params) : params;
+
+    const pathPart = toPathname(encoded as object);
+    const queryParams = Object.entries<string>(encoded || {}).filter(
       ([name]) => !pathParamsAllowMap[name]
     );
     const queryPart = queryParams
@@ -64,46 +77,13 @@ export const makeRoute = <Params extends Record<string, string> | void, ViewID>(
       .join("&");
 
     if (queryPart.length > 0) return `${pathPart}?${queryPart}`;
-    return pathPart;
-  };
 
-  const createView = (url: string) => ({
-    id: viewId,
-    params: getParams(url),
-  });
+    return pathPart;
+  }
 
   return {
-    viewId,
     isMatching,
     getUrl,
     getParams,
-    createView,
   };
-};
-
-export const routes = {
-  root: makeRoute<void, "root">("root", "/"),
-  product: makeRoute<{ productId: string }, "product">(
-    "product",
-    "/product/:productId"
-  ),
-  productList: makeRoute<void, "product-list">("product-list", "/products"),
-};
-
-export const getRouteByUrl = (url: string): Routes | undefined =>
-  Object.values(routes).find((route) => route.isMatching(url));
-
-export const getRouteByView = (view: View): Routes | undefined =>
-  Object.values(routes).find((route) => route.viewId === view.id);
-
-export const createView = (url: string) => {
-  const route = getRouteByUrl(url);
-  if (!route) throw new Error("oupsy!");
-  return route.createView(url);
-};
-
-export const getUrl = (view: ReturnType<typeof createView>) => {
-  const route = getRouteByView(view);
-  if (!route) throw new Error("oupsy!");
-  return route.getUrl(view.params as any);
-};
+}

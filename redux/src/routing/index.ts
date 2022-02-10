@@ -1,6 +1,6 @@
 import { Store } from "redux";
 import { RootState } from "@/core/store";
-import { actions, canLeave } from "@/core/app";
+import { routes, actions, canLeave } from "@/core/app";
 import { getUrl, createView } from "@/core/routes";
 
 let currentRouteIndex = 0;
@@ -20,7 +20,7 @@ const confirmLeaving = () =>
 export const startRouting = (store: Store<RootState>) => {
   const onStoreUpdate = (state: RootState) => {
     if (state.app.view !== prevState.app.view) {
-      const nextUrl = getUrl(state.app.view);
+      const nextUrl = getUrl(routes, state.app.view);
       if (nextUrl !== getCurrentUrl()) goToUrl(nextUrl);
     }
     if (state.app.nextView) {
@@ -31,7 +31,7 @@ export const startRouting = (store: Store<RootState>) => {
   };
 
   let shouldCheckNextPop = true;
-  const view = createView(getCurrentUrl());
+  const view = createView(routes, getCurrentUrl());
   store.dispatch(actions.goTo({ view }));
   prevState = store.getState();
   store.subscribe(() => onStoreUpdate(store.getState()));
