@@ -1,4 +1,4 @@
-import { makeRoute } from "./routes";
+import { makeRoute, findMatchingRoute } from "./routes";
 
 const encodeRouteB = (params: { paramB: number; x?: boolean }) => ({
   paramB: params.paramB.toString(),
@@ -73,5 +73,15 @@ describe("makeRoute", () => {
         x: true,
       });
     });
+  });
+});
+
+describe("findMatchingRoute", () => {
+  it("finds a matching route", () => {
+    expect(findMatchingRoute([routeA, routeB], "/route-a")).toBe(routeA);
+  });
+
+  it("returns `undefined` if there was no match", () => {
+    expect(findMatchingRoute([routeA, routeB], "/route-c")).toBe(undefined);
   });
 });

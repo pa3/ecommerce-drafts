@@ -1,10 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { makeRoute, Route } from "@/core/routes";
+import { makeRoute, findMatchingRoute } from "@/core/routes";
 
 interface App {
   nextView?: ReturnType<typeof createView>;
   view: ReturnType<typeof createView>;
 }
+
+type AppRoute = typeof routes[keyof typeof routes];
+
+export const views = {
+  notFound: { id: "not-found" },
+};
 
 export const routes = {
   root: makeRoute("/"),
@@ -12,25 +18,14 @@ export const routes = {
   productList: makeRoute("/products"),
 };
 
-export const views = {
-  notFound: { id: "not-found" },
-};
-
-export function findMatchingRoute(routes: Route<unknown>[], url: string) {
-  return Object.values(routes).find((route) => route.isMatching(url));
-}
-
-export function createView(
-  route?: typeof routes[keyof typeof routes],
-  url: string
-) {
+export function createView(route: AppRoute | undefined, url: string) {
   switch (route) {
     case routes.root:
-      return { id: "root", params: route.getParams(url) };
+      return { id: "root" };
     case routes.product:
-      return { id: "product", parmas: route.getParams(url) };
+      return { id: "product", productId: route.getParams(url).productId };
     case routes.productList:
-      return { id: "product-list", par };
+      return { id: "product-list" };
   }
   return { id: "not-found" };
 }

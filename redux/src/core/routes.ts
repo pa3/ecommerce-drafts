@@ -8,6 +8,8 @@ export interface Route<Params> {
 
 type RawParams<Params> = Record<keyof Params, string>;
 
+export function makeRoute(path: string): Route<void>;
+
 export function makeRoute<Params extends Record<string, string>>(
   path: string
 ): Route<Params>;
@@ -86,4 +88,11 @@ export function makeRoute<Params>(
     getUrl,
     getParams,
   };
+}
+
+export function findMatchingRoute<R extends Route<any>>(
+  routes: R[],
+  url: string
+): R | undefined {
+  return routes.find((route) => route.isMatching(url));
 }
