@@ -1,10 +1,8 @@
 import { Store } from "redux";
 import { RootState } from "@/core/store";
-import { routes, actions, canLeave } from "@/core/app";
-import { getUrl, createView } from "@/core/routes";
+import { actions, canLeave } from "@/core/app";
 
 let currentRouteIndex = 0;
-let prevState: RootState;
 
 const getCurrentUrl = () => window.location.pathname + window.location.search;
 
@@ -19,25 +17,28 @@ const confirmLeaving = () =>
 
 export const startRouting = (store: Store<RootState>) => {
   const onStoreUpdate = (state: RootState) => {
-    if (state.app.view !== prevState.app.view) {
-      const nextUrl = getUrl(routes, state.app.view);
-      if (nextUrl !== getCurrentUrl()) goToUrl(nextUrl);
+    if (state.app.url !== getCurrentUrl()) {
+      goToUrl(state.app.url);
     }
-    if (state.app.nextView) {
+
+    if (state.app.nextUrl) {
       confirmLeaving() &&
-        store.dispatch(actions.goTo({ view: state.app.nextView, force: true }));
+        store.dispatch(
+          actions.goToUrl({ url: state.app.nextUrl, force: true })
+        );
     }
-    prevState = state;
   };
 
   let shouldCheckNextPop = true;
-  const view = createView(routes, getCurrentUrl());
-  store.dispatch(actions.goTo({ view }));
-  prevState = store.getState();
+  store.dispatch(actions.goToUrl({ url: getCurrentUrl() }));
   store.subscribe(() => onStoreUpdate(store.getState()));
 
-  window.onbeforeunload = () =>
-    !canLeave(store.getState().app) && confirmLeaving();
+  window.onbeforeunload = (event) => {
+    if (!canLeave(store.getState().app)) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  };
 
   window.onpopstate = () => {
     if (!shouldCheckNextPop) {
@@ -54,8 +55,7 @@ export const startRouting = (store: Store<RootState>) => {
       window.history.go(delta);
     } else {
       currentRouteIndex = routeIndex;
-      const view = createView(getCurrentUrl());
-      store.dispatch(actions.goTo({ view }));
+      store.dispatch(actions.goToUrl({ url: getCurrentUrl() }));
     }
   };
 };

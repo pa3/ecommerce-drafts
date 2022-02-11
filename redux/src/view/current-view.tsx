@@ -1,10 +1,12 @@
 import { useSelector } from "react-redux";
 import { NotFound } from "@/view/not-found";
+import { Product } from "@/view/product";
+import { ProductList } from "@/view/product-list";
 import { RootState } from "@/core/store";
 
 export const CurrentView = () => {
   const viewId = useSelector((state: RootState) => state.app.view.id);
-  if (viewId === "product") return <h1>Product</h1>;
-  if (viewId === "product-list") return <h1>Product list</h1>;
+  if (viewId === "product") return <Product />;
+  if (viewId === "product-list") return <ProductList />;
   return <NotFound />;
 };

@@ -18,7 +18,7 @@ The backend part is out of the scope of these drafts and will be mocked.
 
 The properties I want to achieve in these draft using the architecture I plan to use:
  - ease of replacing view/networking/routing/etc. third-party libs/frameworks
- - uncomplicated testability
+ - uncomplicated testability. It should be possible to cover as much logic with just unit tests as possible. Unit tests, in turn, should use as little amount of mocking as possible.
 
 ## List of drafts
 
