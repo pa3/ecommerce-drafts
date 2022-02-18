@@ -7,6 +7,6 @@ import { startBackendMocks } from "@/backend-mocks";
 startBackendMocks();
 
 const store = createStore();
+startNetwork(store);
 startView(store);
 startRouting(store);
-startNetwork(store);

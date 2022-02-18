@@ -1,13 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { makeRoute, findMatchingRoute } from "@/core/routes";
+import { loadProducts } from "@/core/products";
+import { RootState, Dispatch, GetState } from "@/core/store";
 
-type AppRoute = typeof routes[keyof typeof routes];
-type View = ReturnType<typeof createView>;
+type AppRouteId = keyof typeof routes;
 
 type App = {
   url: string;
   nextUrl?: string;
-  view: View;
+  routeId: AppRouteId;
 };
 
 export const routes = {
@@ -16,58 +17,62 @@ export const routes = {
   productList: makeRoute("/products"),
 };
 
-function createView(route: AppRoute | undefined, url: string) {
-  switch (route) {
-    case routes.root:
-      return { id: "root" as const };
-    case routes.product:
-      return {
-        id: "product" as const,
-        productId: route.getParams(url).productId,
-      };
-    case routes.productList:
-      return { id: "product-list" as const };
-  }
-  return { id: "not-found" as const };
-}
+const routeIdByRoute = Object.entries(routes).reduce(
+  (result, [routeId, route]) => result.set(route, routeId),
+  new Map()
+);
 
-export function getViewUrl(view: View): string | undefined {
-  switch (view.id) {
-    case "root":
-      return routes.root.getUrl();
-    case "product-list":
-      return routes.productList.getUrl();
-    case "product":
-      return routes.product.getUrl({ productId: view.productId });
-    default:
-      return undefined;
+export const canLeave = (state: RootState) => {
+  if (state.app.routeId === "product") {
+    return true;
   }
-}
-
-export const canLeave = (app: App) => {
-  return app.view.id !== "product";
+  return true;
 };
 
-export const { reducer, actions } = createSlice({
+const appSlice = createSlice({
   name: "app",
   initialState: {
     url: "/",
-    view: { id: "root", params: undefined },
+    routeId: "root",
   } as App,
   reducers: {
-    goToUrl(state, action: PayloadAction<{ url: string; force?: boolean }>) {
-      const { url, force } = action.payload;
-
-      if (!force && !canLeave(state)) {
-        state.nextUrl = url;
-        return;
-      }
-
-      const route = findMatchingRoute(Object.values(routes), url);
-      const view = createView(route, url);
-      state.view = view;
+    confirmGoTo(state, action: PayloadAction<string>) {
+      const url = action.payload;
+      state.nextUrl = url;
+    },
+    setCurrentRoute(
+      state,
+      action: PayloadAction<{ url: string; routeId: keyof typeof routes }>
+    ) {
+      const { url, routeId } = action.payload;
       state.url = url;
-      state.nextUrl = undefined;
+      state.routeId = routeId;
+      delete state.nextUrl;
     },
   },
 });
+
+export const { setCurrentRoute, confirmGoTo } = appSlice.actions;
+export const reducer = appSlice.reducer;
+
+export const goToUrl =
+  (payload: { url: string; force?: boolean }) =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const { url, force } = payload;
+
+    const state = getState();
+
+    if (!force && !canLeave(state)) {
+      dispatch(confirmGoTo(url));
+      return;
+    }
+
+    const route = findMatchingRoute(Object.values(routes), url);
+
+    if (route === routes.product) {
+      const { productId } = route.getParams(url);
+      dispatch(loadProducts([productId]));
+    }
+
+    dispatch(setCurrentRoute({ routeId: routeIdByRoute.get(route), url }));
+  };

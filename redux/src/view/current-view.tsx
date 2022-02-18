@@ -5,8 +5,8 @@ import { ProductList } from "@/view/product-list";
 import { RootState } from "@/core/store";
 
 export const CurrentView = () => {
-  const viewId = useSelector((state: RootState) => state.app.view.id);
-  if (viewId === "product") return <Product />;
-  if (viewId === "product-list") return <ProductList />;
+  const { routeId } = useSelector((state: RootState) => state.app);
+  if (routeId === "product") return <Product />;
+  if (routeId === "productList") return <ProductList />;
   return <NotFound />;
 };

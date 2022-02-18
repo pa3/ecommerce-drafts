@@ -1,12 +1,11 @@
-import { Store } from "redux";
-import { RootState } from "@/core/store";
-import { actions, canLeave } from "@/core/app";
+import { RootState, Store } from "@/core/store";
+import { goToUrl, canLeave } from "@/core/app";
 
 let currentRouteIndex = 0;
 
 const getCurrentUrl = () => window.location.pathname + window.location.search;
 
-const goToUrl = (url: string) => {
+const setUrl = (url: string) => {
   window.history.pushState({ routeIndex: ++currentRouteIndex }, "", url);
 };
 
@@ -15,26 +14,24 @@ const confirmLeaving = () =>
     "There are unsaved changes. Do you really want to leave this page?"
   );
 
-export const startRouting = (store: Store<RootState>) => {
+export const startRouting = (store: Store) => {
   const onStoreUpdate = (state: RootState) => {
     if (state.app.url !== getCurrentUrl()) {
-      goToUrl(state.app.url);
+      setUrl(state.app.url);
     }
 
     if (state.app.nextUrl) {
       confirmLeaving() &&
-        store.dispatch(
-          actions.goToUrl({ url: state.app.nextUrl, force: true })
-        );
+        store.dispatch(goToUrl({ url: state.app.nextUrl, force: true }));
     }
   };
 
   let shouldCheckNextPop = true;
-  store.dispatch(actions.goToUrl({ url: getCurrentUrl() }));
+  store.dispatch(goToUrl({ url: getCurrentUrl() }));
   store.subscribe(() => onStoreUpdate(store.getState()));
 
   window.onbeforeunload = (event) => {
-    if (!canLeave(store.getState().app)) {
+    if (!canLeave(store.getState())) {
       event.preventDefault();
       event.returnValue = "";
     }
@@ -50,12 +47,12 @@ export const startRouting = (store: Store<RootState>) => {
     const routeIndex = state?.routeIndex ?? 0;
     const delta = currentRouteIndex - routeIndex;
 
-    if (!canLeave(store.getState().app) && !confirmLeaving()) {
+    if (!canLeave(store.getState()) && !confirmLeaving()) {
       shouldCheckNextPop = false;
       window.history.go(delta);
     } else {
       currentRouteIndex = routeIndex;
-      store.dispatch(actions.goToUrl({ url: getCurrentUrl() }));
+      store.dispatch(goToUrl({ url: getCurrentUrl() }));
     }
   };
 };

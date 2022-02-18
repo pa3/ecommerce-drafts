@@ -1,6 +1,6 @@
 import { ReactNode, MouseEvent, useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { actions } from "@/core/app";
+import { goToUrl } from "@/core/app";
 
 interface LinkProps {
   url: string;
@@ -13,7 +13,7 @@ export const Link = (props: LinkProps) => {
   const onClick = useCallback(
     (e: MouseEvent) => {
       e.preventDefault();
-      dispatch(actions.goToUrl({ url: props.url }));
+      dispatch(goToUrl({ url: props.url }));
     },
     [props.url]
   );

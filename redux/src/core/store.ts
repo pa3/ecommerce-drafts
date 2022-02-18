@@ -5,14 +5,20 @@ import {
   ThunkDispatch,
 } from "@reduxjs/toolkit";
 import { reducer as appReducer } from "@/core/app";
+import { reducer as productsReducer } from "@/core/products";
 
-const reducer = combineReducers({ app: appReducer });
+const reducer = combineReducers({ app: appReducer, products: productsReducer });
 
-export const createStore = () =>
-  configureStore({
+export function createStore() {
+  return configureStore({
     reducer,
   });
+}
 
 export type RootState = ReturnType<typeof reducer>;
 
 export type Dispatch = ThunkDispatch<RootState, void, AnyAction>;
+
+export type Store = ReturnType<typeof createStore>;
+
+export type GetState = () => RootState;
