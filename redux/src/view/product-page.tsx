@@ -4,8 +4,6 @@ import { Product, changeProduct } from "@/core/products";
 import { RemoteEntity } from "@/core/remote-entity";
 import { routes } from "@/core/app";
 
-const;
-
 const ProductForm = (props: {
   productId: string;
   product: RemoteEntity<Product>;
