@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { makeRoute, findMatchingRoute } from "@/core/routes";
-import { loadProducts } from "@/core/products";
+import { loadProduct } from "@/core/products";
 import { RootState, Dispatch, GetState } from "@/core/store";
 
 type AppRouteId = keyof typeof routes;
@@ -71,7 +71,7 @@ export const goToUrl =
 
     if (route === routes.product) {
       const { productId } = route.getParams(url);
-      dispatch(loadProducts([productId]));
+      dispatch(loadProduct(productId));
     }
 
     dispatch(setCurrentRoute({ routeId: routeIdByRoute.get(route), url }));

@@ -1,22 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, Draft } from "@reduxjs/toolkit";
 import { ProductType } from "@/core/product-types";
-import { ErrorCode } from "@/core/errors";
-
-export type RemoteProduct =
-  | {
-      status: "loading";
-      remoteState?: Product;
-    }
-  | {
-      status: "ready";
-      remoteState: Product;
-      draft: Partial<Product>;
-    }
-  | {
-      status: "error";
-      code: ErrorCode;
-      error?: Error;
-    };
+import { RemoteEntity, SyncingError } from "@/core/remote-entity";
 
 export type Product = {
   id: string;
@@ -29,36 +13,98 @@ export type Product = {
 };
 
 export type Products = {
-  [id: string]: RemoteProduct;
+  [id: string]: RemoteEntity<Product>;
 };
+
+type HandleLoadResultsPayload = Array<
+  | {
+      id: string;
+      error: SyncingError;
+    }
+  | {
+      id: string;
+      product: Product;
+    }
+>;
 
 export const isDirty = (state: Products, id: string) => {
   const product = state[id];
 
   if (product.status !== "ready") return false;
 
-  return !!product.draft;
+  return Object.keys(product.localChanges || {}).length > 0;
 };
 
 const productsSlice = createSlice({
   name: "products",
   initialState: {} as Products,
   reducers: {
-    load(state, action: PayloadAction<string>) {
+    loadProduct(state, action: PayloadAction<string>) {
       const id = action.payload;
 
-      if (state[id]) state[id].status = "loading";
-      else state[id] = { status: "loading" };
+      if (state[id]) {
+        state[id].status = "loading";
+      } else {
+        state[id] = { status: "loading" };
+      }
     },
-    handleLoadResult(
-      state,
-      action: PayloadAction<{ id: string; product: Product }>
+    handleLoadResults(state, action: PayloadAction<HandleLoadResultsPayload>) {
+      const results = action.payload;
+
+      results.forEach((result) => {
+        if ("error" in result) {
+          state[result.id] = {
+            status: "loading-error",
+            error: result.error,
+            remoteState: state[result.id]?.remoteState,
+          };
+        } else {
+          state[result.id] = {
+            status: "ready",
+            remoteState: result.product,
+            localChanges: state[result.id]?.localChanges || {},
+          };
+        }
+      });
+    },
+    changeProduct<T extends keyof Product>(
+      state: Draft<Products>,
+      action: PayloadAction<{
+        id: string;
+        field: T;
+        value: Product[T];
+      }>
     ) {
-      const { id, product } = action.payload;
-      //      state[id] = product;
+      const { id, field, value } = action.payload;
+      const product = state[id];
+
+      if (product.status !== "ready") return;
+
+      if (product.remoteState[field] === value) {
+        delete product.localChanges[field];
+        return;
+      }
+
+      product.localChanges[field] = value;
     },
   },
 });
 
-export const { load, handleLoadResult } = productsSlice.actions;
+// Overriding `changeProduct` type to prevent loosing dependency between
+// types of `field` and `value`.
+export const { loadProduct, handleLoadResults, changeProduct } =
+  productsSlice.actions as unknown as Omit<
+    typeof productsSlice.actions,
+    "changeProduct"
+  > & {
+    changeProduct: <T extends keyof Product>(payload: {
+      id: string;
+      field: T;
+      value: Product[T];
+    }) => PayloadAction<{
+      id: string;
+      field: T;
+      value: Product[T];
+    }>;
+  };
 export const reducer = productsSlice.reducer;

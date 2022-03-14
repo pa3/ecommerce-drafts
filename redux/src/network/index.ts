@@ -1,5 +1,5 @@
 import { RootState, Store } from "@/core/store";
-import { setLoadedProducts } from "@/core/products";
+import { handleLoadResults } from "@/core/products";
 
 const fetchProduct = async (id: string) => {
   const response = await fetch(`/api/products/${id}`);
@@ -29,7 +29,9 @@ export const startNetwork = (store: Store) => {
 
     const products = await Promise.all(promises);
 
-    store.dispatch(setLoadedProducts(products));
+    const results = products.map((product) => ({ id: product.id, product }));
+
+    store.dispatch(handleLoadResults(results));
   };
 
   const onStoreUpdate = (state: RootState) => {

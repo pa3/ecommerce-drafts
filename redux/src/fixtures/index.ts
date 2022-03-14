@@ -63,6 +63,12 @@ const bicycles: ProductType = {
   ],
 };
 
+const knownProductTypes = {
+  [tshirts.id]: tshirts,
+  [keyboards.id]: keyboards,
+  [bicycles.id]: bicycles,
+};
+
 const catchyAdjectives = [
   "Beautiful",
   "Best",
@@ -98,35 +104,32 @@ function getRandomElement<T>(arr: T[]): T {
   return arr[i];
 }
 
-export function makeProduct(productTypeId?: string): Product {
-  const productCommons = {
-    id: crypto.randomUUID(),
-    price: Math.round(Math.random() * 1000),
-  };
-
+function getProductName(productTypeId: string): string {
   switch (productTypeId) {
     case tshirts.id:
-      return {
-        ...productCommons,
-        name: `${getRandomElement(catchyAdjectives)} t-shrit`,
-        type: tshirts,
-        attributes: {},
-      };
-
+      return `${getRandomElement(catchyAdjectives)} t-shrit`;
     case keyboards.id:
-      return {
-        ...productCommons,
-        name: `${getRandomElement(catchyAdjectives)} keyboard`,
-        type: keyboards,
-        attributes: {},
-      };
-
+      return `${getRandomElement(catchyAdjectives)} keyboard`;
     default:
-      return {
-        ...productCommons,
-        name: `${getRandomElement(catchyAdjectives)} bicycle`,
-        type: bicycles,
-        attributes: {},
-      };
+      return `${getRandomElement(catchyAdjectives)} bicycle`;
   }
+}
+
+export function makeProduct(
+  fixed: {
+    productTypeId?: string;
+    name?: string;
+  } = {}
+): Product {
+  const productTypeId = fixed.productTypeId || bicycles.id;
+  const name = fixed.name || getProductName(productTypeId);
+  const type = knownProductTypes[productTypeId];
+
+  return {
+    id: crypto.randomUUID(),
+    name,
+    price: Math.round(Math.random() * 1000),
+    type,
+    attributes: {},
+  };
 }
