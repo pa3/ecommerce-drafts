@@ -1,6 +1,6 @@
 import {
   loadProduct,
-  handleLoadResults,
+  handleProductLoadResult,
   changeProduct,
   isDirty,
   reducer,
@@ -10,7 +10,7 @@ import { makeProduct } from "@/fixtures";
 
 let state: Products = {};
 
-describe("Products", () => {
+describe("core/products", () => {
   beforeEach(() => {
     state = {};
   });
@@ -85,12 +85,15 @@ describe("Products", () => {
     });
   });
 
-  describe("handleLoadResults", () => {
+  describe("handleProductLoadResult", () => {
     const product = makeProduct();
 
     it("switches pending product status from 'loading' to 'ready'", () => {
       state = reducer(state, loadProduct(product.id));
-      state = reducer(state, handleLoadResults([{ id: product.id, product }]));
+      state = reducer(
+        state,
+        handleProductLoadResult({ id: product.id, product })
+      );
 
       expect(state).toEqual({
         [product.id]: {
@@ -101,27 +104,18 @@ describe("Products", () => {
       });
     });
 
-    it("stores successfully loaded products even if they did not present with 'loading' status", () => {
+    it("stores successfully loaded product even if it did not present with 'loading' status", () => {
       const product1 = makeProduct();
-      const product2 = makeProduct();
 
       state = reducer(
         state,
-        handleLoadResults([
-          { id: product1.id, product: product1 },
-          { id: product2.id, product: product2 },
-        ])
+        handleProductLoadResult({ id: product1.id, product: product1 })
       );
 
       expect(state).toEqual({
         [product1.id]: {
           status: "ready",
           remoteState: product1,
-          localChanges: {},
-        },
-        [product2.id]: {
-          status: "ready",
-          remoteState: product2,
           localChanges: {},
         },
       });
@@ -137,7 +131,10 @@ describe("Products", () => {
         },
       };
 
-      state = reducer(state, handleLoadResults([{ id: product.id, product }]));
+      state = reducer(
+        state,
+        handleProductLoadResult({ id: product.id, product })
+      );
 
       expect(state[product.id].localChanges).toEqual({ name: "new name" });
     });
@@ -145,7 +142,7 @@ describe("Products", () => {
     it("stores loading error", () => {
       state = reducer(
         state,
-        handleLoadResults([{ id: "productId", error: "not-found" }])
+        handleProductLoadResult({ id: "productId", error: "not-found" })
       );
 
       expect(state).toEqual({

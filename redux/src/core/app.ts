@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { makeRoute, findMatchingRoute } from "@/core/routes";
-import { loadProduct } from "@/core/products";
+import { loadProduct, isDirty } from "@/core/products";
+import { applyConstraints, Constraints } from "@/core/product-list";
 import { RootState, Dispatch, GetState } from "@/core/store";
 
 type AppRouteId = keyof typeof routes;
@@ -14,7 +15,22 @@ type App = {
 export const routes = {
   root: makeRoute("/"),
   product: makeRoute<{ productId: string }>("/product/:productId"),
-  productList: makeRoute("/products"),
+  productList: makeRoute<{ constraints: Constraints }>(
+    "/products",
+    (params) => ({
+      constraints: Buffer.from(
+        JSON.stringify(params.constraints),
+        "utf8"
+      ).toString("base64"),
+    }),
+    (rawParams) => ({
+      constraints: rawParams.constraints
+        ? JSON.parse(
+            Buffer.from(rawParams.constraints, "base64").toString("utf8")
+          )
+        : {},
+    })
+  ),
 };
 
 const routeIdByRoute = Object.entries(routes).reduce(
@@ -24,7 +40,10 @@ const routeIdByRoute = Object.entries(routes).reduce(
 
 export const canLeave = (state: RootState) => {
   if (state.app.routeId === "product") {
-    return true;
+    return !isDirty(
+      state.products,
+      routes.product.getParams(state.app.url).productId
+    );
   }
   return true;
 };
@@ -72,6 +91,11 @@ export const goToUrl =
     if (route === routes.product) {
       const { productId } = route.getParams(url);
       dispatch(loadProduct(productId));
+    }
+
+    if (route === routes.productList) {
+      const { constraints } = route.getParams(url);
+      dispatch(applyConstraints(constraints));
     }
 
     dispatch(setCurrentRoute({ routeId: routeIdByRoute.get(route), url }));

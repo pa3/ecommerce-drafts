@@ -16,7 +16,7 @@ export type Products = {
   [id: string]: RemoteEntity<Product>;
 };
 
-type HandleLoadResultsPayload = Array<
+type HandleProductLoadResultPayload =
   | {
       id: string;
       error: SyncingError;
@@ -24,8 +24,7 @@ type HandleLoadResultsPayload = Array<
   | {
       id: string;
       product: Product;
-    }
->;
+    };
 
 export const isDirty = (state: Products, id: string) => {
   const product = state[id];
@@ -48,24 +47,25 @@ const productsSlice = createSlice({
         state[id] = { status: "loading" };
       }
     },
-    handleLoadResults(state, action: PayloadAction<HandleLoadResultsPayload>) {
-      const results = action.payload;
+    handleProductLoadResult(
+      state,
+      action: PayloadAction<HandleProductLoadResultPayload>
+    ) {
+      const result = action.payload;
 
-      results.forEach((result) => {
-        if ("error" in result) {
-          state[result.id] = {
-            status: "loading-error",
-            error: result.error,
-            remoteState: state[result.id]?.remoteState,
-          };
-        } else {
-          state[result.id] = {
-            status: "ready",
-            remoteState: result.product,
-            localChanges: state[result.id]?.localChanges || {},
-          };
-        }
-      });
+      if ("error" in result) {
+        state[result.id] = {
+          status: "loading-error",
+          error: result.error,
+          remoteState: state[result.id]?.remoteState,
+        };
+      } else {
+        state[result.id] = {
+          status: "ready",
+          remoteState: result.product,
+          localChanges: state[result.id]?.localChanges || {},
+        };
+      }
     },
     changeProduct<T extends keyof Product>(
       state: Draft<Products>,
@@ -92,7 +92,7 @@ const productsSlice = createSlice({
 
 // Overriding `changeProduct` type to prevent loosing dependency between
 // types of `field` and `value`.
-export const { loadProduct, handleLoadResults, changeProduct } =
+export const { loadProduct, handleProductLoadResult, changeProduct } =
   productsSlice.actions as unknown as Omit<
     typeof productsSlice.actions,
     "changeProduct"

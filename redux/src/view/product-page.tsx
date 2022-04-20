@@ -13,19 +13,43 @@ const ProductForm = (props: {
   if (product.status !== "ready") return null;
 
   return (
-    <input
-      type="text"
-      value={product.localChanges?.name ?? product.remoteState.name}
-      onChange={(event) =>
-        dispatch(
-          changeProduct({
-            id: productId,
-            field: "name",
-            value: event.target.value,
-          })
-        )
-      }
-    />
+    <>
+      <div>
+        <label htmlFor="name">Product name:</label>
+        <input
+          id="name"
+          type="text"
+          value={product.localChanges?.name ?? product.remoteState.name}
+          onChange={(event) =>
+            dispatch(
+              changeProduct({
+                id: productId,
+                field: "name",
+                value: event.target.value,
+              })
+            )
+          }
+        />
+      </div>
+
+      <div>
+        <label htmlFor="price">Product price:</label>
+        <input
+          id="price"
+          type="number"
+          value={product.localChanges?.price ?? product.remoteState.price}
+          onChange={(event) =>
+            dispatch(
+              changeProduct({
+                id: productId,
+                field: "price",
+                value: Number.parseFloat(event.target.value),
+              })
+            )
+          }
+        />
+      </div>
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
 /* Utility types */
+
 type Prev = [
   never,
   0,
@@ -49,4 +50,26 @@ export type DeepPartial<T> = T extends object
 
 /* Utility functions */
 
-//export function<T> omit();
+function uniq<T>(array: T[]): T[] {
+  return Array.from(new Set(array));
+}
+
+export function assignDeep<T>(dest: T, change: DeepPartial<T>): T {
+  const allKeys = uniq([...Object.keys(dest), ...Object.keys(change)]);
+  return Object.fromEntries(
+    allKeys.map((key) => {
+      const oldValue = dest[key as keyof T];
+      const newValue = change[key as keyof T] as unknown as DeepPartial<
+        T[keyof T]
+      >;
+      if (newValue) {
+        const nextValue =
+          Array.isArray(oldValue) || typeof oldValue !== "object"
+            ? newValue
+            : assignDeep(oldValue, newValue);
+        return [key, nextValue];
+      }
+      return [key, oldValue];
+    })
+  ) as any as T;
+}

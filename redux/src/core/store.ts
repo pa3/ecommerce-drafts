@@ -6,8 +6,13 @@ import {
 } from "@reduxjs/toolkit";
 import { reducer as appReducer } from "@/core/app";
 import { reducer as productsReducer } from "@/core/products";
+import { reducer as productListReducer } from "@/core/product-list";
 
-const reducer = combineReducers({ app: appReducer, products: productsReducer });
+const reducer = combineReducers({
+  app: appReducer,
+  products: productsReducer,
+  productList: productListReducer,
+});
 
 export function createStore() {
   return configureStore({

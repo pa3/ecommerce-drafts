@@ -1,5 +1,5 @@
 import { RootState, Store } from "@/core/store";
-import { handleLoadResults } from "@/core/products";
+import { handleProductLoadResult } from "@/core/products";
 
 const fetchProduct = async (id: string) => {
   const response = await fetch(`/api/products/${id}`);
@@ -19,19 +19,14 @@ export const startNetwork = (store: Store) => {
       .map(([id]) => id);
 
   const loadProducts = async (ids: string[]) => {
-    const promises = ids.map(async (id) => {
+    if (!ids.length) return;
+
+    ids.forEach(async (id) => {
       pending[id] = true;
       const product = await fetchProduct(id);
+      store.dispatch(handleProductLoadResult({ id, product }));
       pending[id] = false;
-
-      return product;
     });
-
-    const products = await Promise.all(promises);
-
-    const results = products.map((product) => ({ id: product.id, product }));
-
-    store.dispatch(handleLoadResults(results));
   };
 
   const onStoreUpdate = (state: RootState) => {

@@ -2,8 +2,19 @@ import { Product } from "@/core/products";
 import { ProductType } from "@/core/product-types";
 import crypto from "crypto";
 
+declare global {
+  interface Crypto {
+    randomUUID: () => string;
+  }
+}
+
+function randomUUID() {
+  if (typeof window === "undefined") return crypto.randomUUID();
+  return window.crypto.randomUUID();
+}
+
 const tshirts: ProductType = {
-  id: crypto.randomUUID(),
+  id: randomUUID(),
   name: "T-Shirts",
   attributes: [
     {
@@ -29,7 +40,7 @@ const tshirts: ProductType = {
 };
 
 const keyboards: ProductType = {
-  id: crypto.randomUUID(),
+  id: randomUUID(),
   name: "Keyboards",
   attributes: [
     {
@@ -46,7 +57,7 @@ const keyboards: ProductType = {
 };
 
 const bicycles: ProductType = {
-  id: crypto.randomUUID(),
+  id: randomUUID(),
   name: "Bicycles",
   attributes: [
     {
@@ -126,7 +137,7 @@ export function makeProduct(
   const type = knownProductTypes[productTypeId];
 
   return {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     name,
     price: Math.round(Math.random() * 1000),
     type,
