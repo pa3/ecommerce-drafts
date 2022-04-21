@@ -74,10 +74,10 @@ describe("core/app", () => {
         ],
       };
 
-      const encodedConstraints = Buffer.from(
-        JSON.stringify(constraints),
-        "utf8"
-      ).toString("base64");
+      const encodedConstraints = encodeURIComponent(
+        JSON.stringify(constraints)
+      );
+
       store.dispatch(
         goToUrl({ url: `/products?constraints=${encodedConstraints}` })
       );

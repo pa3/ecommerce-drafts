@@ -5,7 +5,7 @@ describe("assignDeep", () => {
     const obj = {
       foo: "foo",
       bar: {},
-      baz: [],
+      baz: [1],
       lol: "123",
     };
 

@@ -1,6 +1,13 @@
-import { createSlice, PayloadAction, Draft } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createSelector,
+  PayloadAction,
+  Draft,
+} from "@reduxjs/toolkit";
+import { handleProductListLoadResult } from "@/core/product-list";
 import { ProductType } from "@/core/product-types";
 import { RemoteEntity, SyncingError } from "@/core/remote-entity";
+import { RootState } from "@/core/store";
 
 export type Product = {
   id: string;
@@ -88,7 +95,26 @@ const productsSlice = createSlice({
       product.localChanges[field] = value;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(handleProductListLoadResult, (state, action) => {
+      const { items } = action.payload;
+      items.forEach((item) => {
+        state[item.id] = {
+          status: "ready",
+          remoteState: item,
+          localChanges: {},
+        };
+      });
+    });
+  },
 });
+
+const selectSelf = (state: RootState) => state.products;
+
+export const selectProduct = createSelector(
+  [selectSelf, (_: RootState, id: string) => id],
+  (state: Products, id: string) => state[id]
+);
 
 // Overriding `changeProduct` type to prevent loosing dependency between
 // types of `field` and `value`.

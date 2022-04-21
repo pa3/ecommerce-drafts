@@ -1,5 +1,6 @@
 import { rest } from "msw";
 import { makeProduct } from "@/fixtures";
+import { Constraints } from "@/core/product-list";
 
 function times<T>(n: number, fn: (i: number) => T): T[] {
   const result: T[] = new Array(n);
@@ -12,11 +13,14 @@ function times<T>(n: number, fn: (i: number) => T): T[] {
 const allProducts = times(100, () => makeProduct());
 
 export const productHandlers = [
-  rest.get("/api/products", (_, res, ctx) => {
+  rest.post("/api/products", (req, res, ctx) => {
+    const { page, perPage } = req.body as Constraints;
+    const foundProducts = allProducts.splice(perPage * (page - 1), perPage);
+
     return res(
-      ctx.delay(2000),
+      ctx.delay(1000),
       ctx.json({
-        items: allProducts,
+        items: foundProducts,
       })
     );
   }),
@@ -24,10 +28,11 @@ export const productHandlers = [
     const foundProduct = allProducts.find(
       (product) => product.id === req.params.id
     );
+
     if (!foundProduct) {
-      return res(ctx.delay(2000), ctx.status(404));
+      return res(ctx.delay(1000), ctx.status(404));
     }
 
-    return res(ctx.delay(2000), ctx.json(foundProduct));
+    return res(ctx.delay(1000), ctx.json(foundProduct));
   }),
 ];

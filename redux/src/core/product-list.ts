@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Product } from "@/core/products";
 import { assignDeep, DeepPartial } from "@/core/utils";
 
 type TextFilter =
@@ -58,6 +59,7 @@ export type ProductList = {
   status: "loading" | "ready" | "error";
   constraints: Constraints;
   itemIds: string[];
+  total?: number;
 };
 
 const DEFAULT_CONSTRAINTS = {
@@ -77,14 +79,27 @@ const productListSlice = createSlice({
   reducers: {
     applyConstraints(
       state: ProductList,
-      action: PayloadAction<DeepPartial<Constraints>>
+      action: PayloadAction<DeepPartial<Constraints> | undefined>
     ) {
-      const constraints = action.payload;
+      const constraints = action.payload ?? {};
       state.constraints = assignDeep(state.constraints, constraints);
       state.status = "loading";
+    },
+    handleProductListLoadResult(
+      state: ProductList,
+      action: PayloadAction<{
+        total: number;
+        items: Product[];
+      }>
+    ) {
+      const { total, items } = action.payload;
+      state.status = "ready";
+      state.total = total;
+      state.itemIds = items.map(({ id }) => id);
     },
   },
 });
 
-export const { applyConstraints } = productListSlice.actions;
+export const { applyConstraints, handleProductListLoadResult } =
+  productListSlice.actions;
 export const reducer = productListSlice.reducer;

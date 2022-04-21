@@ -3,84 +3,67 @@ import {
   handleProductLoadResult,
   changeProduct,
   isDirty,
-  reducer,
-  Products,
+  selectProduct,
 } from "@/core/products";
+import { handleProductListLoadResult } from "@/core/product-list";
 import { makeProduct } from "@/fixtures";
+import { createStore } from "@/core/store";
 
-let state: Products = {};
+let store: ReturnType<typeof createStore>;
 
 describe("core/products", () => {
   beforeEach(() => {
-    state = {};
+    store = createStore();
   });
 
   describe("isDirty", () => {
     const product = makeProduct();
 
     it("counts product out of sync status as being clean", () => {
-      state = {
-        [product.id]: {
-          status: "loading",
-        },
-      };
-
-      expect(isDirty(state, product.id)).toBe(false);
+      store.dispatch(loadProduct(product.id));
+      const { products } = store.getState();
+      expect(isDirty(products, product.id)).toBe(false);
     });
 
     it("counts product without local changes as being clean", () => {
-      state = {
-        [product.id]: {
-          status: "ready",
-          remoteState: product,
-          localChanges: {},
-        },
-      };
-
-      expect(isDirty(state, product.id)).toBe(false);
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
+      const { products } = store.getState();
+      expect(isDirty(products, product.id)).toBe(false);
     });
 
     it("counts product with local changes as being dirty", () => {
-      state = {
-        [product.id]: {
-          status: "ready",
-          remoteState: product,
-          localChanges: { name: "new product name" },
-        },
-      };
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
+      store.dispatch(
+        changeProduct({
+          id: product.id,
+          field: "name",
+          value: "new product name",
+        })
+      );
 
-      expect(isDirty(state, product.id)).toBe(true);
+      const { products } = store.getState();
+      expect(isDirty(products, product.id)).toBe(true);
     });
   });
 
   describe("loadProduct", () => {
     it("triggers product loading of a product which was not loaded yet", () => {
-      state = reducer(state, loadProduct("productId"));
+      store.dispatch(loadProduct("productId"));
 
-      expect(state).toEqual({
-        productId: {
-          status: "loading",
-        },
+      const product = selectProduct(store.getState(), "productId");
+      expect(product).toEqual({
+        status: "loading",
       });
     });
 
     it("triggers product loading of previously loaded product", () => {
       const product = makeProduct();
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
+      store.dispatch(loadProduct(product.id));
 
-      state[product.id] = {
-        status: "ready",
-        remoteState: product,
-        localChanges: { name: "new value" },
-      };
-
-      state = reducer(state, loadProduct(product.id));
-
-      expect(state).toEqual({
-        [product.id]: {
-          status: "loading",
-          remoteState: product,
-          localChanges: { name: "new value" },
-        },
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore).toMatchObject({
+        status: "loading",
       });
     });
   });
@@ -89,67 +72,56 @@ describe("core/products", () => {
     const product = makeProduct();
 
     it("switches pending product status from 'loading' to 'ready'", () => {
-      state = reducer(state, loadProduct(product.id));
-      state = reducer(
-        state,
-        handleProductLoadResult({ id: product.id, product })
-      );
+      store.dispatch(loadProduct(product.id));
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
 
-      expect(state).toEqual({
-        [product.id]: {
-          status: "ready",
-          remoteState: product,
-          localChanges: {},
-        },
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore).toEqual({
+        status: "ready",
+        remoteState: product,
+        localChanges: {},
       });
     });
 
     it("stores successfully loaded product even if it did not present with 'loading' status", () => {
-      const product1 = makeProduct();
+      const product = makeProduct();
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
 
-      state = reducer(
-        state,
-        handleProductLoadResult({ id: product1.id, product: product1 })
-      );
-
-      expect(state).toEqual({
-        [product1.id]: {
-          status: "ready",
-          remoteState: product1,
-          localChanges: {},
-        },
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore).toEqual({
+        status: "ready",
+        remoteState: product,
+        localChanges: {},
       });
     });
 
     it("doesn't drop local changes", () => {
       const product = makeProduct();
-      state = {
-        [product.id]: {
-          status: "ready",
-          remoteState: product,
-          localChanges: { name: "new name" },
-        },
-      };
-
-      state = reducer(
-        state,
-        handleProductLoadResult({ id: product.id, product })
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
+      store.dispatch(
+        changeProduct({
+          id: product.id,
+          field: "name",
+          value: "new product name",
+        })
       );
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
 
-      expect(state[product.id].localChanges).toEqual({ name: "new name" });
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore).toMatchObject({
+        localChanges: { name: "new product name" },
+      });
     });
 
     it("stores loading error", () => {
-      state = reducer(
-        state,
+      store.dispatch(
         handleProductLoadResult({ id: "productId", error: "not-found" })
       );
 
-      expect(state).toEqual({
-        productId: {
-          status: "loading-error",
-          error: "not-found",
-        },
+      const productInStore = selectProduct(store.getState(), "productId");
+      expect(productInStore).toEqual({
+        status: "loading-error",
+        error: "not-found",
       });
     });
   });
@@ -158,18 +130,11 @@ describe("core/products", () => {
     const product = makeProduct({ name: "original product name" });
 
     beforeEach(() => {
-      state = {
-        [product.id]: {
-          status: "ready",
-          remoteState: product,
-          localChanges: {},
-        },
-      };
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
     });
 
     it("changes product name", () => {
-      state = reducer(
-        state,
+      store.dispatch(
         changeProduct({
           id: product.id,
           field: "name",
@@ -177,14 +142,14 @@ describe("core/products", () => {
         })
       );
 
-      expect(state[product.id].localChanges).toEqual({
-        name: "new product name",
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore).toMatchObject({
+        localChanges: { name: "new product name" },
       });
     });
 
     it("drops localChanges when product field changes reverted", () => {
-      state = reducer(
-        state,
+      store.dispatch(
         changeProduct({
           id: product.id,
           field: "name",
@@ -192,8 +157,7 @@ describe("core/products", () => {
         })
       );
 
-      state = reducer(
-        state,
+      store.dispatch(
         changeProduct({
           id: product.id,
           field: "name",
@@ -201,7 +165,34 @@ describe("core/products", () => {
         })
       );
 
-      expect(state[product.id].localChanges).toEqual({});
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore.localChanges).toEqual({});
+    });
+  });
+
+  describe("handleProductListLoadResult", () => {
+    it("stores loaded list item details", () => {
+      const product1 = makeProduct();
+      const product2 = makeProduct();
+
+      store.dispatch(
+        handleProductListLoadResult({ total: 100, items: [product1, product2] })
+      );
+
+      const { products } = store.getState();
+
+      expect(products).toEqual({
+        [product1.id]: {
+          status: "ready",
+          remoteState: product1,
+          localChanges: {},
+        },
+        [product2.id]: {
+          status: "ready",
+          remoteState: product2,
+          localChanges: {},
+        },
+      });
     });
   });
 });

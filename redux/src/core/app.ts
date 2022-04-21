@@ -15,19 +15,17 @@ type App = {
 export const routes = {
   root: makeRoute("/"),
   product: makeRoute<{ productId: string }>("/product/:productId"),
-  productList: makeRoute<{ constraints: Constraints }>(
+  productList: makeRoute<{ constraints?: Constraints }>(
     "/products",
-    (params) => ({
-      constraints: Buffer.from(
-        JSON.stringify(params.constraints),
-        "utf8"
-      ).toString("base64"),
-    }),
+    (params) =>
+      params.constraints
+        ? {
+            constraints: encodeURIComponent(JSON.stringify(params.constraints)),
+          }
+        : {},
     (rawParams) => ({
       constraints: rawParams.constraints
-        ? JSON.parse(
-            Buffer.from(rawParams.constraints, "base64").toString("utf8")
-          )
+        ? JSON.parse(decodeURIComponent(rawParams.constraints))
         : {},
     })
   ),

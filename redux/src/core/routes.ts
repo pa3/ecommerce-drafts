@@ -6,7 +6,9 @@ export interface Route<Params> {
   isMatching: (url: string) => boolean;
 }
 
-type RawParams<Params> = Record<keyof Params, string>;
+export type RawParams<Params> = {
+  [param in keyof Params]: string;
+};
 
 export function makeRoute(path: string): Route<void>;
 
