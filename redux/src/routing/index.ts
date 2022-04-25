@@ -15,15 +15,21 @@ const confirmLeaving = () =>
   );
 
 export const startRouting = (store: Store) => {
+  let prevState = store.getState();
+
   const onStoreUpdate = (state: RootState) => {
     if (state.app.url !== getCurrentUrl()) {
       setUrl(state.app.url);
     }
 
-    if (state.app.nextUrl) {
+    if (state.app.nextUrl && state.app.nextUrl !== prevState.app.nextUrl) {
+      // set prevState eagerly to prevent infinite confirmation loop
+      prevState = state;
       confirmLeaving() &&
         store.dispatch(goToUrl({ url: state.app.nextUrl, force: true }));
     }
+
+    prevState = state;
   };
 
   let shouldCheckNextPop = true;

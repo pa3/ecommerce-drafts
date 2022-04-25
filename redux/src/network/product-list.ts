@@ -15,7 +15,6 @@ export const startProductListSyncing = (store: Store) => {
     });
     const loadedProducts = await response.json();
     if (prevConstraints === constraints) {
-      console.log({ loadedProducts });
       store.dispatch(handleProductListLoadResult(loadedProducts));
     }
   };

@@ -94,6 +94,11 @@ const productsSlice = createSlice({
 
       product.localChanges[field] = value;
     },
+    discardChanges(state, action: PayloadAction<string>) {
+      const id = action.payload;
+      const product = state[id];
+      product.localChanges = {};
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(handleProductListLoadResult, (state, action) => {
@@ -118,19 +123,23 @@ export const selectProduct = createSelector(
 
 // Overriding `changeProduct` type to prevent loosing dependency between
 // types of `field` and `value`.
-export const { loadProduct, handleProductLoadResult, changeProduct } =
-  productsSlice.actions as unknown as Omit<
-    typeof productsSlice.actions,
-    "changeProduct"
-  > & {
-    changeProduct: <T extends keyof Product>(payload: {
-      id: string;
-      field: T;
-      value: Product[T];
-    }) => PayloadAction<{
-      id: string;
-      field: T;
-      value: Product[T];
-    }>;
-  };
+export const {
+  loadProduct,
+  handleProductLoadResult,
+  discardChanges,
+  changeProduct,
+} = productsSlice.actions as unknown as Omit<
+  typeof productsSlice.actions,
+  "changeProduct"
+> & {
+  changeProduct: <T extends keyof Product>(payload: {
+    id: string;
+    field: T;
+    value: Product[T];
+  }) => PayloadAction<{
+    id: string;
+    field: T;
+    value: Product[T];
+  }>;
+};
 export const reducer = productsSlice.reducer;

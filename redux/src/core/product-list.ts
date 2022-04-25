@@ -49,10 +49,9 @@ export type Constraints = {
     createdAt?: DateFilter;
     productType?: ReferenceFilter;
   };
-  sorting: Array<{
-    by: string;
-    direction: "asc" | "desc";
-  }>;
+  sorting: {
+    [by: string]: "asc" | "desc";
+  };
 };
 
 export type ProductList = {
@@ -66,7 +65,7 @@ const DEFAULT_CONSTRAINTS = {
   page: 1,
   perPage: 10,
   filters: {},
-  sorting: [],
+  sorting: {},
 };
 
 const productListSlice = createSlice({
@@ -97,9 +96,19 @@ const productListSlice = createSlice({
       state.total = total;
       state.itemIds = items.map(({ id }) => id);
     },
+    sortBy(state: ProductList, action: PayloadAction<string>) {
+      const by = action.payload;
+      const prevOrder = state.constraints.sorting[by];
+      if (prevOrder === "desc") {
+        delete state.constraints.sorting[by];
+      } else {
+        const newOrder = prevOrder ? "desc" : "asc";
+        state.constraints.sorting[by] = newOrder;
+      }
+    },
   },
 });
 
-export const { applyConstraints, handleProductListLoadResult } =
+export const { applyConstraints, handleProductListLoadResult, sortBy } =
   productListSlice.actions;
 export const reducer = productListSlice.reducer;

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { makeRoute, findMatchingRoute } from "@/core/routes";
-import { loadProduct, isDirty } from "@/core/products";
+import { loadProduct, isDirty, discardChanges } from "@/core/products";
 import { applyConstraints, Constraints } from "@/core/product-list";
 import { RootState, Dispatch, GetState } from "@/core/store";
 
@@ -94,6 +94,13 @@ export const goToUrl =
     if (route === routes.productList) {
       const { constraints } = route.getParams(url);
       dispatch(applyConstraints(constraints));
+    }
+
+    const prevRoute = findMatchingRoute(Object.values(routes), state.app.url);
+
+    if (prevRoute === routes.product) {
+      const { productId } = prevRoute.getParams(state.app.url);
+      dispatch(discardChanges(productId));
     }
 
     dispatch(setCurrentRoute({ routeId: routeIdByRoute.get(route), url }));

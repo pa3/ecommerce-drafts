@@ -1,5 +1,9 @@
 import { goToUrl, canLeave } from "@/core/app";
-import { changeProduct, handleProductLoadResult } from "@/core/products";
+import {
+  changeProduct,
+  selectProduct,
+  handleProductLoadResult,
+} from "@/core/products";
 import { Constraints } from "@/core/product-list";
 import { makeProduct } from "@/fixtures";
 import { createStore } from "@/core/store";
@@ -39,6 +43,23 @@ describe("core/app", () => {
       });
     });
 
+    it("discards product changes when navigating away from product details", () => {
+      const product = makeProduct();
+      store.dispatch(goToUrl({ url: `/product/${product.id}` }));
+      store.dispatch(handleProductLoadResult({ id: product.id, product }));
+      store.dispatch(
+        changeProduct({ id: product.id, field: "name", value: "new value" })
+      );
+      store.dispatch(goToUrl({ url: `/products`, force: true }));
+
+      const productInStore = selectProduct(store.getState(), product.id);
+      expect(productInStore).toEqual({
+        status: "ready",
+        remoteState: product,
+        localChanges: {},
+      });
+    });
+
     it("triggers product list loading when navigating to product list", () => {
       store.dispatch(goToUrl({ url: "/products" }));
 
@@ -54,7 +75,7 @@ describe("core/app", () => {
             page: 1,
             perPage: 10,
             filters: {},
-            sorting: [],
+            sorting: {},
           },
         },
       });
@@ -68,10 +89,7 @@ describe("core/app", () => {
           name: { startsWith: "foo" },
           createdAt: { gt: new Date().toISOString() },
         },
-        sorting: [
-          { by: "name", direction: "desc" },
-          { by: "price", direction: "asc" },
-        ],
+        sorting: { name: "desc", price: "asc" },
       };
 
       const encodedConstraints = encodeURIComponent(
