@@ -36,3 +36,11 @@ export function assignDeep<T>(dest: T, change: DeepPartial<T>): T {
     })
   ) as any as T;
 }
+
+export function times<T>(n: number, fn: (i: number) => T): T[] {
+  const result: T[] = new Array(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = fn(i);
+  }
+  return result;
+}

@@ -1,6 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createSelector, PayloadAction } from "@reduxjs/toolkit";
 import { Product } from "@/core/products";
 import { assignDeep, DeepPartial } from "@/core/utils";
+import { RootState } from "@/core/store";
 
 type TextFilter = { startsWith: string } | { eq: string };
 
@@ -68,9 +69,33 @@ const productListSlice = createSlice({
         const newOrder = prevOrder ? "desc" : "asc";
         state.constraints.sorting[by] = newOrder;
       }
+      state.status = "loading";
+    },
+
+    goToPage(state: ProductList, action: PayloadAction<number>) {
+      state.constraints.page = action.payload;
+      state.status = "loading";
+    },
+
+    setPageSize(state: ProductList, action: PayloadAction<number>) {
+      state.constraints.perPage = action.payload;
+      state.constraints.page = 1;
+      state.status = "loading";
     },
   },
 });
 
-export const { applyConstraints, handleProductListLoadResult, sortBy } = productListSlice.actions;
+export const selectConstraints = (state: RootState) => state.productList.constraints;
+
+export const selectSorting = (state: RootState) => state.productList.constraints.sorting;
+
+const selectTotalItems = (state: RootState) => state.productList.total;
+
+export const selectPagination = createSelector(selectConstraints, selectTotalItems, (constraints: Constraints, totalItems?: number) => ({
+  page: constraints.page,
+  perPage: constraints.perPage,
+  totalPages: totalItems ? Math.ceil(totalItems / constraints.perPage) : 1,
+}));
+
+export const { applyConstraints, handleProductListLoadResult, sortBy, goToPage, setPageSize } = productListSlice.actions;
 export const reducer = productListSlice.reducer;

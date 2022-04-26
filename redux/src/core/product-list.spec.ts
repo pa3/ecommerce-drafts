@@ -1,4 +1,4 @@
-import { applyConstraints, handleProductListLoadResult, sortBy } from "@/core/product-list";
+import { applyConstraints, handleProductListLoadResult, sortBy, goToPage, setPageSize, selectSorting, selectPagination } from "@/core/product-list";
 import { makeProduct } from "@/fixtures";
 import { createStore } from "@/core/store";
 
@@ -58,14 +58,14 @@ describe("Product List", () => {
   describe("sortBy", () => {
     it("apply ASC sorting initially", () => {
       store.dispatch(sortBy("name"));
-      const { sorting } = store.getState().productList.constraints;
+      const sorting = selectSorting(store.getState());
       expect(sorting).toEqual({ name: "asc" });
     });
 
     it("allows sorting by multiple columns", () => {
       store.dispatch(sortBy("name"));
       store.dispatch(sortBy("price"));
-      const { sorting } = store.getState().productList.constraints;
+      const sorting = selectSorting(store.getState());
       expect(sorting).toEqual({
         name: "asc",
         price: "asc",
@@ -75,7 +75,7 @@ describe("Product List", () => {
     it("toggles existing ASC sorting to DESC", () => {
       store.dispatch(sortBy("name"));
       store.dispatch(sortBy("name"));
-      const { sorting } = store.getState().productList.constraints;
+      const sorting = selectSorting(store.getState());
       expect(sorting).toEqual({ name: "desc" });
     });
 
@@ -84,8 +84,64 @@ describe("Product List", () => {
       store.dispatch(sortBy("price"));
       store.dispatch(sortBy("name"));
       store.dispatch(sortBy("name"));
-      const { sorting } = store.getState().productList.constraints;
+      const sorting = selectSorting(store.getState());
       expect(sorting).toEqual({ price: "asc" });
+    });
+
+    it("should put list into loading state", () => {
+      store.dispatch(sortBy("name"));
+      const { status } = store.getState().productList;
+      expect(status).toBe("loading");
+    });
+  });
+
+  describe("goToPage", () => {
+    it("should apply new page number to constraints", () => {
+      store.dispatch(goToPage(3));
+      const { constraints } = store.getState().productList;
+      expect(constraints.page).toBe(3);
+    });
+  });
+
+  describe("goToPage", () => {
+    it("should apply new page number to the constraints", () => {
+      store.dispatch(goToPage(3));
+      const { page } = selectPagination(store.getState());
+      expect(page).toBe(3);
+    });
+
+    it("should put list into loading state", () => {
+      store.dispatch(goToPage(3));
+      const { status } = store.getState().productList;
+      expect(status).toBe("loading");
+    });
+  });
+
+  describe("setPageSize", () => {
+    it("should apply new page size to the constraints", () => {
+      store.dispatch(setPageSize(20));
+      const { perPage } = selectPagination(store.getState());
+      expect(perPage).toBe(20);
+    });
+
+    it("should go to the first page", () => {
+      store.dispatch(goToPage(3));
+      store.dispatch(setPageSize(20));
+      const { page } = selectPagination(store.getState());
+      expect(page).toBe(1);
+    });
+
+    it("should put list into loading state", () => {
+      store.dispatch(setPageSize(20));
+      const { status } = store.getState().productList;
+      expect(status).toBe("loading");
+    });
+
+    it("should update total pages count", () => {
+      store.dispatch(handleProductListLoadResult({ total: 100, items: [makeProduct(), makeProduct()] }));
+      expect(selectPagination(store.getState()).totalPages).toBe(10);
+      store.dispatch(setPageSize(20));
+      expect(selectPagination(store.getState()).totalPages).toBe(5);
     });
   });
 });

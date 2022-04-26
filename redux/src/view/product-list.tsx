@@ -1,9 +1,10 @@
 import { useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectProduct } from "@/core/products";
-import { sortBy } from "@/core/product-list";
+import { sortBy, selectPagination, goToPage, setPageSize } from "@/core/product-list";
 import { RootState } from "@/core/store";
 import { Link } from "@/view/link";
+import { Paginator } from "@/view/paginator";
 import { routes } from "@/core/app";
 
 const ProductListRow = (props: { productId: string }) => {
@@ -45,6 +46,23 @@ const ProductListHeaderCell = (props: { label: string; field: string }) => {
   );
 };
 
+const ProductListPaginator = () => {
+  const pagination = useSelector(selectPagination);
+  const dispatch = useDispatch();
+  const handleGoToPage = useCallback((page: number) => dispatch(goToPage(page)), [dispatch]);
+  const handlePageSizeChange = useCallback((perPage: number) => dispatch(setPageSize(perPage)), [dispatch]);
+
+  return (
+    <Paginator
+      page={pagination.page}
+      perPage={pagination.perPage}
+      totalPages={pagination.totalPages}
+      onGoToPage={handleGoToPage}
+      onPageSizeChange={handlePageSizeChange}
+    />
+  );
+};
+
 export const ProductList = () => {
   const productList = useSelector((state: RootState) => state.productList);
 
@@ -64,6 +82,7 @@ export const ProductList = () => {
           ))}
         </tbody>
       </table>
+      <ProductListPaginator />
     </>
   );
 };

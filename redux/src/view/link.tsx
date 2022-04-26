@@ -2,10 +2,10 @@ import { ReactNode, MouseEvent, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { goToUrl } from "@/core/app";
 
-interface LinkProps {
+type LinkProps = {
   url: string;
   children: ReactNode;
-}
+};
 
 export const Link = (props: LinkProps) => {
   const dispatch = useDispatch();
