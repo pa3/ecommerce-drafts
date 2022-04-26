@@ -8,9 +8,7 @@ import { routes } from "@/core/app";
 
 const ProductListRow = (props: { productId: string }) => {
   const { productId } = props;
-  const product = useSelector((state: RootState) =>
-    selectProduct(state, productId)
-  );
+  const product = useSelector((state: RootState) => selectProduct(state, productId));
 
   const { remoteState } = product;
   if (!remoteState) {
@@ -25,9 +23,7 @@ const ProductListRow = (props: { productId: string }) => {
   return (
     <tr>
       <td>
-        <Link url={routes.product.getUrl({ productId })}>
-          {remoteState.name}
-        </Link>
+        <Link url={routes.product.getUrl({ productId })}>{remoteState.name}</Link>
       </td>
       <td>{remoteState.price}</td>
     </tr>
@@ -35,24 +31,15 @@ const ProductListRow = (props: { productId: string }) => {
 };
 
 const ProductListHeaderCell = (props: { label: string; field: string }) => {
-  const { sorting } = useSelector(
-    (state: RootState) => state.productList.constraints
-  );
+  const { sorting } = useSelector((state: RootState) => state.productList.constraints);
   const dispatch = useDispatch();
-  const toggleSort = useCallback(
-    () => dispatch(sortBy(props.field)),
-    [props.field]
-  );
+  const toggleSort = useCallback(() => dispatch(sortBy(props.field)), [props.field]);
 
   return (
     <th>
       <button onClick={toggleSort}>
         {props.label}
-        {sorting[props.field]
-          ? sorting[props.field] === "asc"
-            ? "↓"
-            : "↑"
-          : ""}
+        {sorting[props.field] ? (sorting[props.field] === "asc" ? "↓" : "↑") : ""}
       </button>
     </th>
   );

@@ -1,8 +1,4 @@
-import {
-  applyConstraints,
-  handleProductListLoadResult,
-  sortBy,
-} from "@/core/product-list";
+import { applyConstraints, handleProductListLoadResult, sortBy } from "@/core/product-list";
 import { makeProduct } from "@/fixtures";
 import { createStore } from "@/core/store";
 

@@ -12,9 +12,7 @@ export type RawParams<Params> = {
 
 export function makeRoute(path: string): Route<void>;
 
-export function makeRoute<Params extends Record<string, string>>(
-  path: string
-): Route<Params>;
+export function makeRoute<Params extends Record<string, string>>(path: string): Route<Params>;
 
 // An overload making sure that encode/decode functions are provided
 // if route parameter values are not all strings
@@ -32,9 +30,7 @@ export function makeRoute<Params>(
   const pathKeys: Key[] = [];
   pathToRegexp(path, pathKeys);
 
-  const pathParamsAllowMap = Object.fromEntries(
-    pathKeys.map(({ name }) => [name, true])
-  );
+  const pathParamsAllowMap = Object.fromEntries(pathKeys.map(({ name }) => [name, true]));
 
   const toPathname = compile(path);
   const matchPathname = match(path);
@@ -46,9 +42,7 @@ export function makeRoute<Params>(
 
   function getParams(url: string): Params {
     const [pathPart, queryPart] = url.split("?");
-    const match = matchPathname(pathPart) as
-      | { params: Record<keyof Params, string> }
-      | undefined;
+    const match = matchPathname(pathPart) as { params: Record<keyof Params, string> } | undefined;
 
     if (!match) throw new Error(`URL '${url}' does not match path '${path}'`);
 
@@ -73,12 +67,8 @@ export function makeRoute<Params>(
     const encoded = encodeParams ? encodeParams(params) : params;
 
     const pathPart = toPathname(encoded as object);
-    const queryParams = Object.entries<string>(encoded || {}).filter(
-      ([name]) => !pathParamsAllowMap[name]
-    );
-    const queryPart = queryParams
-      .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
-      .join("&");
+    const queryParams = Object.entries<string>(encoded || {}).filter(([name]) => !pathParamsAllowMap[name]);
+    const queryPart = queryParams.map(([name, value]) => `${name}=${encodeURIComponent(value)}`).join("&");
 
     if (queryPart.length > 0) return `${pathPart}?${queryPart}`;
 
@@ -92,9 +82,6 @@ export function makeRoute<Params>(
   };
 }
 
-export function findMatchingRoute<R extends Route<any>>(
-  routes: R[],
-  url: string
-): R | undefined {
+export function findMatchingRoute<R extends Route<any>>(routes: R[], url: string): R | undefined {
   return routes.find((route) => route.isMatching(url));
 }

@@ -1,9 +1,5 @@
 import { goToUrl, canLeave } from "@/core/app";
-import {
-  changeProduct,
-  selectProduct,
-  handleProductLoadResult,
-} from "@/core/products";
+import { changeProduct, selectProduct, handleProductLoadResult } from "@/core/products";
 import { Constraints } from "@/core/product-list";
 import { makeProduct } from "@/fixtures";
 import { createStore } from "@/core/store";
@@ -47,9 +43,7 @@ describe("core/app", () => {
       const product = makeProduct();
       store.dispatch(goToUrl({ url: `/product/${product.id}` }));
       store.dispatch(handleProductLoadResult({ id: product.id, product }));
-      store.dispatch(
-        changeProduct({ id: product.id, field: "name", value: "new value" })
-      );
+      store.dispatch(changeProduct({ id: product.id, field: "name", value: "new value" }));
       store.dispatch(goToUrl({ url: `/products`, force: true }));
 
       const productInStore = selectProduct(store.getState(), product.id);
@@ -92,13 +86,9 @@ describe("core/app", () => {
         sorting: { name: "desc", price: "asc" },
       };
 
-      const encodedConstraints = encodeURIComponent(
-        JSON.stringify(constraints)
-      );
+      const encodedConstraints = encodeURIComponent(JSON.stringify(constraints));
 
-      store.dispatch(
-        goToUrl({ url: `/products?constraints=${encodedConstraints}` })
-      );
+      store.dispatch(goToUrl({ url: `/products?constraints=${encodedConstraints}` }));
 
       expect(store.getState()).toMatchObject({
         app: {
@@ -131,9 +121,7 @@ describe("core/app", () => {
       const product = makeProduct();
       store.dispatch(goToUrl({ url: `/product/${product.id}` }));
       store.dispatch(handleProductLoadResult({ id: product.id, product }));
-      store.dispatch(
-        changeProduct({ id: product.id, field: "name", value: "new name" })
-      );
+      store.dispatch(changeProduct({ id: product.id, field: "name", value: "new name" }));
 
       expect(canLeave(store.getState())).toBe(false);
     });

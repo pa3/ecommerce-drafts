@@ -8,11 +8,7 @@ module.exports = {
       },
     },
   },
-  extends: [
-    "eslint:recommended",
-    "plugin:jest/recommended",
-    "plugin:import/recommended",
-  ],
+  extends: ["eslint:recommended", "plugin:jest/recommended", "plugin:import/recommended"],
   env: {
     browser: true,
   },

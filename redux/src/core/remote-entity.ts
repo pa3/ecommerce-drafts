@@ -28,7 +28,4 @@ type FailedSyncEntity<T> = {
   localChanges?: DeepPartial<T>;
 };
 
-export type RemoteEntity<T> =
-  | SyncingEntity<T>
-  | FailedSyncEntity<T>
-  | InSyncEntity<T>;
+export type RemoteEntity<T> = SyncingEntity<T> | FailedSyncEntity<T> | InSyncEntity<T>;

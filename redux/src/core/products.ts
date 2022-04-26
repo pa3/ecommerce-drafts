@@ -1,9 +1,4 @@
-import {
-  createSlice,
-  createSelector,
-  PayloadAction,
-  Draft,
-} from "@reduxjs/toolkit";
+import { createSlice, createSelector, PayloadAction, Draft } from "@reduxjs/toolkit";
 import { handleProductListLoadResult } from "@/core/product-list";
 import { ProductType } from "@/core/product-types";
 import { RemoteEntity, SyncingError } from "@/core/remote-entity";
@@ -19,19 +14,9 @@ export type Product = {
   };
 };
 
-export type Products = {
-  [id: string]: RemoteEntity<Product>;
-};
+export type Products = { [id: string]: RemoteEntity<Product> };
 
-type HandleProductLoadResultPayload =
-  | {
-      id: string;
-      error: SyncingError;
-    }
-  | {
-      id: string;
-      product: Product;
-    };
+type HandleProductLoadResultPayload = { id: string; error: SyncingError } | { id: string; product: Product };
 
 export const isDirty = (state: Products, id: string) => {
   const product = state[id];
@@ -54,10 +39,8 @@ const productsSlice = createSlice({
         state[id] = { status: "loading" };
       }
     },
-    handleProductLoadResult(
-      state,
-      action: PayloadAction<HandleProductLoadResultPayload>
-    ) {
+
+    handleProductLoadResult(state, action: PayloadAction<HandleProductLoadResultPayload>) {
       const result = action.payload;
 
       if ("error" in result) {
@@ -74,14 +57,8 @@ const productsSlice = createSlice({
         };
       }
     },
-    changeProduct<T extends keyof Product>(
-      state: Draft<Products>,
-      action: PayloadAction<{
-        id: string;
-        field: T;
-        value: Product[T];
-      }>
-    ) {
+
+    changeProduct<T extends keyof Product>(state: Draft<Products>, action: PayloadAction<{ id: string; field: T; value: Product[T] }>) {
       const { id, field, value } = action.payload;
       const product = state[id];
 
@@ -94,12 +71,14 @@ const productsSlice = createSlice({
 
       product.localChanges[field] = value;
     },
+
     discardChanges(state, action: PayloadAction<string>) {
       const id = action.payload;
       const product = state[id];
       product.localChanges = {};
     },
   },
+
   extraReducers: (builder) => {
     builder.addCase(handleProductListLoadResult, (state, action) => {
       const { items } = action.payload;
@@ -116,30 +95,14 @@ const productsSlice = createSlice({
 
 const selectSelf = (state: RootState) => state.products;
 
-export const selectProduct = createSelector(
-  [selectSelf, (_: RootState, id: string) => id],
-  (state: Products, id: string) => state[id]
-);
+export const selectProduct = createSelector([selectSelf, (_: RootState, id: string) => id], (state: Products, id: string) => state[id]);
 
 // Overriding `changeProduct` type to prevent loosing dependency between
 // types of `field` and `value`.
-export const {
-  loadProduct,
-  handleProductLoadResult,
-  discardChanges,
-  changeProduct,
-} = productsSlice.actions as unknown as Omit<
+export const { loadProduct, handleProductLoadResult, discardChanges, changeProduct } = productsSlice.actions as unknown as Omit<
   typeof productsSlice.actions,
   "changeProduct"
 > & {
-  changeProduct: <T extends keyof Product>(payload: {
-    id: string;
-    field: T;
-    value: Product[T];
-  }) => PayloadAction<{
-    id: string;
-    field: T;
-    value: Product[T];
-  }>;
+  changeProduct: <T extends keyof Product>(payload: { id: string; field: T; value: Product[T] }) => PayloadAction<{ id: string; field: T; value: Product[T] }>;
 };
 export const reducer = productsSlice.reducer;

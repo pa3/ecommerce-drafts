@@ -4,10 +4,7 @@ import { Product, changeProduct } from "@/core/products";
 import { RemoteEntity } from "@/core/remote-entity";
 import { routes } from "@/core/app";
 
-const ProductForm = (props: {
-  productId: string;
-  product: RemoteEntity<Product>;
-}) => {
+const ProductForm = (props: { productId: string; product: RemoteEntity<Product> }) => {
   const { product, productId } = props;
   const dispatch = useDispatch();
   if (product.status !== "ready") return null;
@@ -54,9 +51,7 @@ const ProductForm = (props: {
 };
 
 export const ProductPage = () => {
-  const { productId } = useSelector((state: RootState) =>
-    routes.product.getParams(state.app.url)
-  );
+  const { productId } = useSelector((state: RootState) => routes.product.getParams(state.app.url));
 
   const product = useSelector((state: RootState) => state.products[productId]);
 

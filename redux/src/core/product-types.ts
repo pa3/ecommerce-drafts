@@ -3,9 +3,7 @@ export type EnumAttribute = {
   values: Array<{ id: string; name: string }>;
 };
 
-export type SimpleAttribute = {
-  type: "text" | "number" | "boolean";
-};
+export type SimpleAttribute = { type: "text" | "number" | "boolean" };
 
 export type ProductAttribute = {
   id: string;

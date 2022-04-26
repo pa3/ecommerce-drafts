@@ -9,10 +9,7 @@ const setUrl = (url: string) => {
   window.history.pushState({ routeIndex: ++currentRouteIndex }, "", url);
 };
 
-const confirmLeaving = () =>
-  window.confirm(
-    "There are unsaved changes. Do you really want to leave this page?"
-  );
+const confirmLeaving = () => window.confirm("There are unsaved changes. Do you really want to leave this page?");
 
 export const startRouting = (store: Store) => {
   let prevState = store.getState();
@@ -25,8 +22,7 @@ export const startRouting = (store: Store) => {
     if (state.app.nextUrl && state.app.nextUrl !== prevState.app.nextUrl) {
       // set prevState eagerly to prevent infinite confirmation loop
       prevState = state;
-      confirmLeaving() &&
-        store.dispatch(goToUrl({ url: state.app.nextUrl, force: true }));
+      confirmLeaving() && store.dispatch(goToUrl({ url: state.app.nextUrl, force: true }));
     }
 
     prevState = state;

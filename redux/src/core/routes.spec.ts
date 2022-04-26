@@ -10,13 +10,8 @@ const decodeRouteB = (params: { paramB: string; x?: string }) => ({
   x: params.x === "true",
 });
 
-const routeA =
-  makeRoute<{ paramA?: string; x?: string; y?: string }>("/route-a/:paramA?");
-const routeB = makeRoute<{ paramB: number; x?: boolean }>(
-  "/route-b/:paramB",
-  encodeRouteB,
-  decodeRouteB
-);
+const routeA = makeRoute<{ paramA?: string; x?: string; y?: string }>("/route-a/:paramA?");
+const routeB = makeRoute<{ paramB: number; x?: boolean }>("/route-b/:paramB", encodeRouteB, decodeRouteB);
 
 describe("makeRoute", () => {
   describe("provides isMatching, which", () => {

@@ -1,10 +1,4 @@
-import {
-  loadProduct,
-  handleProductLoadResult,
-  changeProduct,
-  isDirty,
-  selectProduct,
-} from "@/core/products";
+import { loadProduct, handleProductLoadResult, changeProduct, isDirty, selectProduct } from "@/core/products";
 import { handleProductListLoadResult } from "@/core/product-list";
 import { makeProduct } from "@/fixtures";
 import { createStore } from "@/core/store";
@@ -114,9 +108,7 @@ describe("core/products", () => {
     });
 
     it("stores loading error", () => {
-      store.dispatch(
-        handleProductLoadResult({ id: "productId", error: "not-found" })
-      );
+      store.dispatch(handleProductLoadResult({ id: "productId", error: "not-found" }));
 
       const productInStore = selectProduct(store.getState(), "productId");
       expect(productInStore).toEqual({
@@ -175,9 +167,7 @@ describe("core/products", () => {
       const product1 = makeProduct();
       const product2 = makeProduct();
 
-      store.dispatch(
-        handleProductListLoadResult({ total: 100, items: [product1, product2] })
-      );
+      store.dispatch(handleProductListLoadResult({ total: 100, items: [product1, product2] }));
 
       const { products } = store.getState();
 

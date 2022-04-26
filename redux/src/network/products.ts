@@ -13,9 +13,7 @@ export const startProductsSyncing = (store: Store) => {
 
   const getProductsToLoad = (state: RootState) =>
     Object.entries(state.products)
-      .filter(
-        ([productId, { status }]) => status === "loading" && !pending[productId]
-      )
+      .filter(([productId, { status }]) => status === "loading" && !pending[productId])
       .map(([id]) => id);
 
   const loadProducts = async (ids: string[]) => {

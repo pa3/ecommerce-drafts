@@ -47,9 +47,7 @@ export const productHandlers = [
     );
   }),
   rest.get("/api/products/:id", (req, res, ctx) => {
-    const foundProduct = allProducts.find(
-      (product) => product.id === req.params.id
-    );
+    const foundProduct = allProducts.find((product) => product.id === req.params.id);
 
     if (!foundProduct) {
       return res(ctx.delay(getDelay()), ctx.status(404));
